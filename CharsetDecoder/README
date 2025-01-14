@@ -1,0 +1,24 @@
+Install on search heads. Use the 'decode' command afterwards.
+
+This app adds the 'decode' command, which takes two arguments:
+- field - where does the encoded data reside? (optional, defaults to _raw)
+- charset (mandatory) - currently utf-8, iso-8859-1 and iso-8859-2 are supported 
+
+Considerations:
+- The encoded portions of data must preceeded by "\x" and have no spaces in between. Examples: \xc3\xa9 ; \xae
+- The charset must match exactly the values above (case sensitive): utf-8, iso-8859-1, iso-8859-2. Ways to achieve this include |rex command or | eval
+
+Syntax:
+<your search> |decode field=<yourfield> charset=<utf-8|iso-8859-1|iso-8859-2>
+
+Example:
+index=myindex |stats count by message | decode field=message charset=utf-8
+
+If the app contains charset information, this can be used with the command. Example:
+_raw data: 01/01/2024 01:00:00 UTF-8 My name is Andr\xc3\xa9
+
+Sample query:
+index=myindex
+| rex "\d{2}\:\d{2}\:\d{2}\s(?<mycharset>[\S]+)"
+| eval mycharset=lower(mycharset)
+| decode charset=mycharset
